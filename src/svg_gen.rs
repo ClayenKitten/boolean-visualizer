@@ -1,6 +1,6 @@
 use std::{collections::HashSet, iter::repeat};
 
-use svg::{Document, node::{element::{Pattern, Path, Rectangle, Circle, Group, ClipPath, Definitions, Use, Text}}, Node};
+use svg::{Document, node::element::{Pattern, Rectangle, Circle, Group, Text, Path, path::Data}, Node};
 
 pub fn generate<F>(vars: &HashSet<char>, func: F) -> svg::Document
 where
@@ -71,54 +71,17 @@ pub fn background(filled: bool) -> impl Node {
 
 pub fn single(var: char, filled: bool) -> impl Node {
     Group::new()
-        .add(circle("50%", "50%", "25", filled))
+        .add(circle("50", "50", "25", filled))
         .add(text(var, "50", "50"))
 }
 
 pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
     Group::new()
-        .add(
-            Definitions::new()
-                .add(
-                    circle("33", "50", "25", fill[0])
-                        .set("id", "circle_left")
-                )
-                .add(
-                    circle("66", "50", "25", fill[2])
-                        .set("id", "circle_right")
-                )
-                .add(
-                    ClipPath::new()
-                        .set("id", "clip1")
-                        .add(circle("33", "50", "25.5", false))
-                )
-                .add(
-                    ClipPath::new()
-                        .set("id", "clip2")
-                        .add(circle("33", "50", "24.5", false))
-                )
-        )
-        .add(Use::new().set("href", "#circle_left"))
-        .add(Use::new().set("href", "#circle_right"))
-        .add(text(vars[0], "33", "50"))
-        .add(text(vars[1], "66", "50"))
-        .add(
-            Circle::new()
-                .set("cx", 66)
-                .set("cy", 50)
-                .set("r",  25.5)
-                .set("fill", "black")
-                .set("clip-path", "url(#clip1)")
-        )
-        .add(
-            Circle::new()
-                .set("cx", 66)
-                .set("cy", 50)
-                .set("r",  24.5)
-                .set("fill", if fill[1] { "url(#hatch)" } else { "white" })
-                .set("clip-path", "url(#clip2)")
-                .add(text("F", "50", "50"))
-        )
+        .add(circle("33.33", "50", "25", fill[0]))
+        .add(circle("66.66", "50", "25", fill[2]))
+        .add(intersection(fill[1]))
+        .add(text(vars[0], "33.33", "50"))
+        .add(text(vars[1], "66.66", "50"))
 }
 
 fn circle(cx: &str, cy: &str, r: &str, fill: bool) -> Circle {
@@ -134,6 +97,20 @@ fn circle(cx: &str, cy: &str, r: &str, fill: bool) -> Circle {
                 .set("x", cx)
                 .set("y", cy)
         )
+}
+
+fn intersection(fill: bool) -> Path {
+    Path::new()
+        .set(
+            "d",
+            Data::new()
+                .move_to((50., 31.366))
+                .elliptical_arc_by((25, 25, 0, 0, 0, 0, 37.268))
+                .elliptical_arc_by((25, 25, 0, 0, 0, 0, -37.268))
+        )
+        .set("fill", if fill { "url(#hatch)" } else { "white" })
+        .set("stroke", "black")
+        .set("stroke-width", 1)
 }
 
 fn text(s: impl Into<String>, x: &str, y: &str) -> impl Node {
