@@ -45,6 +45,26 @@ where
                 )
             )
         },
+        3 => {
+            let mut vars: [char; 3] = vars.iter().copied().collect::<Vec<_>>().try_into().unwrap();
+            vars.sort_unstable();
+            document.add(
+                triple(
+                    vars,
+                    [
+                        func(vec![(vars[0], true), (vars[1], false), (vars[2], false)]),
+                        func(vec![(vars[0], false), (vars[1], true), (vars[2], false)]),
+                        func(vec![(vars[0], false), (vars[1], false), (vars[2], true)]),
+
+                        func(vec![(vars[0], true), (vars[1], true), (vars[2], false)]),
+                        func(vec![(vars[0], true), (vars[1], false), (vars[2], true)]),
+                        func(vec![(vars[0], false), (vars[1], true), (vars[2], true)]),
+                        
+                        func(vec![(vars[0], true), (vars[1], true), (vars[2], true)]),
+                    ],
+                )
+            )
+        },
         _ => document,
     }
 }
@@ -100,6 +120,28 @@ pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
         .add(text("66.66", "50", vars[1]))
 }
 
+pub fn triple(vars: [char; 3], fill: [bool; 7]) -> impl Node {
+    let r = 25.;
+    let dy = r * f64::sqrt(3.) / 6.;
+
+    let c1 = Pos { x: 0., y: -2. * dy };
+    let c2 = Pos { x: -r / 2., y: dy };
+    let c3 = Pos { x: r / 2., y: dy };
+
+    Group::new()
+        .set("transform", "translate(50, 50)")
+        .add(circle(c1.x, c1.y, r, fill[0]))
+        .add(circle(c2.x, c2.y, r, fill[1]))
+        .add(circle(c3.x, c3.y, r, fill[2]))
+        .add(intersection(c1, c2, r, fill[3]))
+        .add(intersection(c1, c3, r, fill[4]))
+        .add(intersection(c2, c3, r, fill[5]))
+        .add(center(r, fill[6]))
+        .add(text(c1.x, c1.y - 12., vars[0]))
+        .add(text(c2.x - 9., c2.y + 9., vars[1]))
+        .add(text(c3.x + 9., c3.y + 9., vars[2]))
+}
+
 fn circle(
     cx: impl Into<Value>,
     cy: impl Into<Value>,
@@ -144,6 +186,33 @@ fn intersection(
         .set("fill", if fill { "url(#hatch)" } else { "white" })
         .set("stroke", "black")
         .set("stroke-width", 1)
+}
+
+fn center(
+    radius: f64,
+    fill: bool,
+) -> Path {
+    let pos1 = Pos {
+        x: 0.,
+        y: -f64::sqrt(
+            (radius/2.).powi(2) +
+            (3f64.sqrt() / 6. * radius).powi(2),
+        ),
+    };
+    let pos2 = Pos { x: radius / 2., y: 3f64.sqrt() * radius / 6. };
+    let pos3 = Pos { x: -radius / 2., y: 3f64.sqrt() * radius / 6. };
+    Path::new()
+        .set(
+            "d",
+            Data::new()
+                .move_to((pos1.x, pos1.y))
+                .elliptical_arc_to((radius, radius, 0, 0, 1, pos2.x, pos2.y))
+                .elliptical_arc_to((radius, radius, 0, 0, 1, pos3.x, pos3.y))
+                .elliptical_arc_to((radius, radius, 0, 0, 1, pos1.x, pos1.y))
+        )
+        .set("fill", if fill { "url(#hatch)" } else { "white" })
+        .set("stroke", "black")
+        .set("stroke-width", 1)    
 }
 
 fn text(
