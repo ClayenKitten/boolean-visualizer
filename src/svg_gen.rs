@@ -1,6 +1,9 @@
-use std::{collections::HashSet, iter::repeat};
+use std::{collections::HashSet, f64::consts::PI, iter::repeat};
 
-use svg::{Document, node::element::{Pattern, Rectangle, Circle, Group, Text, Path, path::Data}, Node};
+use svg::{
+    node::element::{path::Data, Circle, Group, Path, Pattern, Rectangle, Text},
+    Document, Node,
+};
 
 pub fn generate<F>(vars: &HashSet<char>, func: F) -> svg::Document
 where
@@ -79,7 +82,7 @@ pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
     Group::new()
         .add(circle("33.33", "50", "25", fill[0]))
         .add(circle("66.66", "50", "25", fill[2]))
-        .add(intersection(fill[1]))
+        .add(intersection(fill[1], 0.5 * PI))
         .add(text(vars[0], "33.33", "50"))
         .add(text(vars[1], "66.66", "50"))
 }
@@ -99,14 +102,18 @@ fn circle(cx: &str, cy: &str, r: &str, fill: bool) -> Circle {
         )
 }
 
-fn intersection(fill: bool) -> Path {
+fn intersection(fill: bool, angle: f64) -> Path {
+    let start = (50., 31.366);
+    let offset = 37.268;
+    let dx = offset * f64::cos(angle);
+    let dy = offset * f64::sin(angle);
     Path::new()
         .set(
             "d",
             Data::new()
-                .move_to((50., 31.366))
-                .elliptical_arc_by((25, 25, 0, 0, 0, 0, 37.268))
-                .elliptical_arc_by((25, 25, 0, 0, 0, 0, -37.268))
+                .move_to(start)
+                .elliptical_arc_by((25, 25, 0, 0, 0, dx, dy))
+                .elliptical_arc_to((25, 25, 0, 0, 0, start.0, start.1)),
         )
         .set("fill", if fill { "url(#hatch)" } else { "white" })
         .set("stroke", "black")
