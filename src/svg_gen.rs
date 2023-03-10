@@ -89,7 +89,7 @@ fn fill_pattern() -> svg::node::element::Pattern {
         )
 }
 
-pub fn background(filled: bool) -> impl Node {
+fn background(filled: bool) -> impl Node {
     Rectangle::new()
         .set("width", "100%")
         .set("height", "100%")
@@ -98,13 +98,13 @@ pub fn background(filled: bool) -> impl Node {
         .set("fill", if filled { "url(#hatch)" } else { "white" })
 }
 
-pub fn single(var: char, filled: bool) -> impl Node {
+fn single(var: char, filled: bool) -> impl Node {
     Group::new()
         .add(circle("50", "50", "25", filled))
         .add(text("50", "50", var))
 }
 
-pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
+fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
     Group::new()
         .add(circle("33.33", "50", "25", fill[0]))
         .add(circle("66.66", "50", "25", fill[2]))
@@ -120,7 +120,7 @@ pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
         .add(text("66.66", "50", vars[1]))
 }
 
-pub fn triple(vars: [char; 3], fill: [bool; 7]) -> impl Node {
+fn triple(vars: [char; 3], fill: [bool; 7]) -> impl Node {
     let r = 25.;
     let dy = r * f64::sqrt(3.) / 6.;
 
