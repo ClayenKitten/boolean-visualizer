@@ -1,7 +1,7 @@
+mod bool_iterator;
+mod function;
 mod svg_gen;
 mod table_gen;
-mod function;
-mod bool_iterator;
 
 use std::collections::HashMap;
 

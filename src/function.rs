@@ -1,6 +1,6 @@
 mod parse;
 
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 
 use self::parse::PostfixToken;
 
@@ -41,16 +41,12 @@ mod eval_tests {
     fn eval_const() {
         assert_eq!(
             Some(false),
-            Function::parse("0")
-                .unwrap()
-                .eval(HashMap::new())
+            Function::parse("0").unwrap().eval(HashMap::new())
         );
 
         assert_eq!(
             Some(true),
-            Function::parse("1")
-                .unwrap()
-                .eval(HashMap::new())
+            Function::parse("1").unwrap().eval(HashMap::new())
         );
     }
 
@@ -74,19 +70,43 @@ mod eval_tests {
     #[test]
     fn eval_and() {
         let func = Function::parse("x & y").unwrap();
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', false), ('y', false)])));
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', true), ('y', false)])));
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', false), ('y', true)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', true)])));
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', false), ('y', false)]))
+        );
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', true), ('y', false)]))
+        );
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', false), ('y', true)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', true)]))
+        );
     }
 
     #[test]
     fn eval_or() {
         let func = Function::parse("x | y").unwrap();
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', false), ('y', false)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', false)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', false), ('y', true)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', true)])));
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', false), ('y', false)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', false)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', false), ('y', true)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', true)]))
+        );
     }
 
     #[test]
@@ -99,18 +119,39 @@ mod eval_tests {
     #[test]
     fn eval_chained_and() {
         let func = Function::parse("x & y & z").unwrap();
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', false), ('y', false), ('z', false)])));
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', false), ('y', false), ('z', true)])));
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', true), ('y', false), ('z', true)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', true), ('z', true)])));
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', false), ('y', false), ('z', false)]))
+        );
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', false), ('y', false), ('z', true)]))
+        );
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', true), ('y', false), ('z', true)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', true), ('z', true)]))
+        );
     }
 
     #[test]
     fn eval_chained_or() {
         let func = Function::parse("x | y | z").unwrap();
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', false), ('y', false), ('z', false)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', false), ('y', false), ('z', true)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', false), ('z', true)])));
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', false), ('y', false), ('z', false)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', false), ('y', false), ('z', true)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', false), ('z', true)]))
+        );
     }
 
     #[test]
@@ -124,17 +165,38 @@ mod eval_tests {
     fn eval_idempotent() {
         let func = Function::parse("x|y&y").unwrap();
         dbg!(&func);
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', false), ('y', false)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', false)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', false), ('y', true)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', true)])));
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', false), ('y', false)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', false)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', false), ('y', true)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', true)]))
+        );
     }
 
     #[test]
     fn eval_complex() {
         let func = Function::parse("!x & (y | z) | !z").unwrap();
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', false), ('y', false), ('z', false)])));
-        assert_eq!(Some(true), func.eval(HashMap::from([('x', true), ('y', false), ('z', false)])));
-        assert_eq!(Some(false), func.eval(HashMap::from([('x', true), ('y', false), ('z', true)])));
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', false), ('y', false), ('z', false)]))
+        );
+        assert_eq!(
+            Some(true),
+            func.eval(HashMap::from([('x', true), ('y', false), ('z', false)]))
+        );
+        assert_eq!(
+            Some(false),
+            func.eval(HashMap::from([('x', true), ('y', false), ('z', true)]))
+        );
     }
 }

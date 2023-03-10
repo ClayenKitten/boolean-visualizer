@@ -7,10 +7,7 @@ pub struct BoolIterator {
 
 impl BoolIterator {
     pub const fn new(width: u8) -> Self {
-        Self {
-            width,
-            value: 0,
-        }
+        Self { width, value: 0 }
     }
 }
 
@@ -18,11 +15,12 @@ impl Iterator for BoolIterator {
     type Item = Vec<bool>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.width == 0 ||
-            self.value >= 2u32.pow(self.width as u32) {
+        if self.width == 0 || self.value >= 2u32.pow(self.width as u32) {
             return None;
         }
-        let item = self.value.view_bits::<Lsb0>()
+        let item = self
+            .value
+            .view_bits::<Lsb0>()
             .iter()
             .by_vals()
             .take(self.width as usize)

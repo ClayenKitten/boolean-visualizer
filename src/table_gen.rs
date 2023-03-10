@@ -12,12 +12,12 @@ where
     let mut vars = Vec::from_iter(vars.iter());
     vars.sort();
     let rows = BoolIterator::new(vars.len() as u8)
-        .map(|values|
+        .map(|values| {
             vars.iter()
                 .map(|x| **x)
                 .zip(values.into_iter().rev())
                 .collect()
-        )
+        })
         .map(|values: Vec<(char, bool)>| {
             html! {
                 <tr>

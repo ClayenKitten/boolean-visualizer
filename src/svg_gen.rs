@@ -15,7 +15,8 @@ where
     let mut document = Document::new()
         .set("viewBox", (0, 0, 100, 100))
         .add(fill_pattern());
-    let all_false = vars.iter()
+    let all_false = vars
+        .iter()
         .copied()
         .zip(repeat(false))
         .collect::<Vec<(char, bool)>>();
@@ -24,47 +25,36 @@ where
         0 => document,
         1 => {
             let char = *vars.iter().next().unwrap();
-            document.add(
-                single(
-                    char,
-                    func(vec![(char, true)]),
-                )
-            )
-        },
+            document.add(single(char, func(vec![(char, true)])))
+        }
         2 => {
             let mut vars: [char; 2] = vars.iter().copied().collect::<Vec<_>>().try_into().unwrap();
             vars.sort_unstable();
-            document.add(
-                double(
-                    vars,
-                    [
-                        func(vec![(vars[0], true), (vars[1], false)]),
-                        func(vec![(vars[0], true), (vars[1], true)]),
-                        func(vec![(vars[0], false), (vars[1], true)]),
-                    ],
-                )
-            )
-        },
+            document.add(double(
+                vars,
+                [
+                    func(vec![(vars[0], true), (vars[1], false)]),
+                    func(vec![(vars[0], true), (vars[1], true)]),
+                    func(vec![(vars[0], false), (vars[1], true)]),
+                ],
+            ))
+        }
         3 => {
             let mut vars: [char; 3] = vars.iter().copied().collect::<Vec<_>>().try_into().unwrap();
             vars.sort_unstable();
-            document.add(
-                triple(
-                    vars,
-                    [
-                        func(vec![(vars[0], true), (vars[1], false), (vars[2], false)]),
-                        func(vec![(vars[0], false), (vars[1], true), (vars[2], false)]),
-                        func(vec![(vars[0], false), (vars[1], false), (vars[2], true)]),
-
-                        func(vec![(vars[0], true), (vars[1], true), (vars[2], false)]),
-                        func(vec![(vars[0], true), (vars[1], false), (vars[2], true)]),
-                        func(vec![(vars[0], false), (vars[1], true), (vars[2], true)]),
-                        
-                        func(vec![(vars[0], true), (vars[1], true), (vars[2], true)]),
-                    ],
-                )
-            )
-        },
+            document.add(triple(
+                vars,
+                [
+                    func(vec![(vars[0], true), (vars[1], false), (vars[2], false)]),
+                    func(vec![(vars[0], false), (vars[1], true), (vars[2], false)]),
+                    func(vec![(vars[0], false), (vars[1], false), (vars[2], true)]),
+                    func(vec![(vars[0], true), (vars[1], true), (vars[2], false)]),
+                    func(vec![(vars[0], true), (vars[1], false), (vars[2], true)]),
+                    func(vec![(vars[0], false), (vars[1], true), (vars[2], true)]),
+                    func(vec![(vars[0], true), (vars[1], true), (vars[2], true)]),
+                ],
+            ))
+        }
         _ => document,
     }
 }
@@ -80,12 +70,12 @@ fn fill_pattern() -> svg::node::element::Pattern {
             Rectangle::new()
                 .set("width", 4)
                 .set("height", 4)
-                .set("fill", "white")
+                .set("fill", "white"),
         )
         .add(
             Path::new()
                 .set("d", "M-1,1 l2,-2\nM0,4 l4,-4\nM3,5 l2,-2")
-                .set("style", "stroke:gray; stroke-width:1")
+                .set("style", "stroke:gray; stroke-width:1"),
         )
 }
 
@@ -110,8 +100,8 @@ fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
         .add(circle("66.66", "50", "25", fill[2]))
         .add(
             intersection(
-                Pos { x: 100./3., y: 50. },
-                Pos { x: 200./3., y: 50. },
+                Pos { x: 100. / 3., y: 50. },
+                Pos { x: 200. / 3., y: 50. },
                 25.,
                 fill[1],
             )
@@ -169,8 +159,8 @@ fn intersection(
     // Length of rhombus's diagonal by its side and another diagonal
     let length = f64::sqrt(4. * radius.powi(2) - distance.powi(2));
     let start = {
-        let x = center.x - (length/2.) * angle.cos();
-        let y = center.y - (length/2.) * angle.sin();
+        let x = center.x - (length / 2.) * angle.cos();
+        let y = center.y - (length / 2.) * angle.sin();
         Pos { x, y }
     };
     let dx = length * angle.cos();
@@ -188,19 +178,19 @@ fn intersection(
         .set("stroke-width", 1)
 }
 
-fn center(
-    radius: f64,
-    fill: bool,
-) -> Path {
+fn center(radius: f64, fill: bool) -> Path {
     let pos1 = Pos {
         x: 0.,
-        y: -f64::sqrt(
-            (radius/2.).powi(2) +
-            (3f64.sqrt() / 6. * radius).powi(2),
-        ),
+        y: -f64::sqrt((radius / 2.).powi(2) + (3f64.sqrt() / 6. * radius).powi(2)),
     };
-    let pos2 = Pos { x: radius / 2., y: 3f64.sqrt() * radius / 6. };
-    let pos3 = Pos { x: -radius / 2., y: 3f64.sqrt() * radius / 6. };
+    let pos2 = Pos {
+        x: radius / 2.,
+        y: 3f64.sqrt() * radius / 6.,
+    };
+    let pos3 = Pos {
+        x: -radius / 2.,
+        y: 3f64.sqrt() * radius / 6.,
+    };
     Path::new()
         .set(
             "d",
@@ -208,18 +198,14 @@ fn center(
                 .move_to((pos1.x, pos1.y))
                 .elliptical_arc_to((radius, radius, 0, 0, 1, pos2.x, pos2.y))
                 .elliptical_arc_to((radius, radius, 0, 0, 1, pos3.x, pos3.y))
-                .elliptical_arc_to((radius, radius, 0, 0, 1, pos1.x, pos1.y))
+                .elliptical_arc_to((radius, radius, 0, 0, 1, pos1.x, pos1.y)),
         )
         .set("fill", if fill { "url(#hatch)" } else { "white" })
         .set("stroke", "black")
-        .set("stroke-width", 1)    
+        .set("stroke-width", 1)
 }
 
-fn text(
-    x: impl Into<Value>,
-    y: impl Into<Value>,
-    s: impl Into<String>,
-) -> impl Node {
+fn text(x: impl Into<Value>, y: impl Into<Value>, s: impl Into<String>) -> impl Node {
     Text::new()
         .set("x", x)
         .set("y", y)
@@ -239,10 +225,7 @@ struct Pos {
 impl Pos {
     /// Computes the distance between points.
     pub fn distance(self, other: Self) -> f64 {
-        f64::sqrt(
-            (self.x - other.x).powi(2) +
-            (self.y - other.y).powi(2)
-        )
+        f64::sqrt((self.x - other.x).powi(2) + (self.y - other.y).powi(2))
     }
 
     /// Computes a point that is in the middle between two provided.
