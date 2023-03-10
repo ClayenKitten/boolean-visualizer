@@ -95,11 +95,6 @@ fn circle(cx: &str, cy: &str, r: &str, fill: bool) -> Circle {
         .set("stroke", "black")
         .set("stroke-width", 1)
         .set("fill", if fill { "url(#hatch)" } else { "white" })
-        .add(
-            Text::new()
-                .set("x", cx)
-                .set("y", cy)
-        )
 }
 
 fn intersection(fill: bool, angle: f64) -> Path {
