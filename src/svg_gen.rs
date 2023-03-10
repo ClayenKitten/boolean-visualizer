@@ -14,24 +14,7 @@ where
 {
     let mut document = Document::new()
         .set("viewBox", (0, 0, 100, 100))
-        .add(
-            Pattern::new()
-                .set("id", "hatch")
-                .set("patternUnits", "userSpaceOnUse")
-                .set("width", 4)
-                .set("height", 4)
-                .add(
-                    Rectangle::new()
-                        .set("width", 4)
-                        .set("height", 4)
-                        .set("fill", "white")
-                )
-                .add(
-                    Path::new()
-                        .set("d", "M-1,1 l2,-2\nM0,4 l4,-4\nM3,5 l2,-2")
-                        .set("style", "stroke:gray; stroke-width:1")
-                )
-        );
+        .add(fill_pattern());
     let all_false = vars.iter()
         .copied()
         .zip(repeat(false))
@@ -64,6 +47,26 @@ where
         },
         _ => document,
     }
+}
+
+/// A hatching pattern that is used to fill circles and their intersections.
+fn fill_pattern() -> svg::node::element::Pattern {
+    Pattern::new()
+        .set("id", "hatch")
+        .set("patternUnits", "userSpaceOnUse")
+        .set("width", 4)
+        .set("height", 4)
+        .add(
+            Rectangle::new()
+                .set("width", 4)
+                .set("height", 4)
+                .set("fill", "white")
+        )
+        .add(
+            Path::new()
+                .set("d", "M-1,1 l2,-2\nM0,4 l4,-4\nM3,5 l2,-2")
+                .set("style", "stroke:gray; stroke-width:1")
+        )
 }
 
 pub fn background(filled: bool) -> impl Node {
