@@ -1,7 +1,10 @@
 use std::{collections::HashSet, f64::consts::PI, iter::repeat};
 
 use svg::{
-    node::element::{path::Data, Circle, Group, Path, Pattern, Rectangle, Text},
+    node::{
+        element::{path::Data, Circle, Group, Path, Pattern, Rectangle, Text},
+        Value,
+    },
     Document, Node,
 };
 
@@ -75,7 +78,7 @@ pub fn background(filled: bool) -> impl Node {
 pub fn single(var: char, filled: bool) -> impl Node {
     Group::new()
         .add(circle("50", "50", "25", filled))
-        .add(text(var, "50", "50"))
+        .add(text("50", "50", var))
 }
 
 pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
@@ -83,15 +86,20 @@ pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
         .add(circle("33.33", "50", "25", fill[0]))
         .add(circle("66.66", "50", "25", fill[2]))
         .add(intersection(fill[1], 0.5 * PI))
-        .add(text(vars[0], "33.33", "50"))
-        .add(text(vars[1], "66.66", "50"))
+        .add(text("33.33", "50", vars[0]))
+        .add(text("66.66", "50", vars[1]))
 }
 
-fn circle(cx: &str, cy: &str, r: &str, fill: bool) -> Circle {
+fn circle(
+    cx: impl Into<Value>,
+    cy: impl Into<Value>,
+    r: impl Into<Value>,
+    fill: bool
+) -> Circle {
     Circle::new()
         .set("cx", cx)
         .set("cy", cy)
-        .set("r",  r)
+        .set("r", r)
         .set("stroke", "black")
         .set("stroke-width", 1)
         .set("fill", if fill { "url(#hatch)" } else { "white" })
@@ -115,7 +123,11 @@ fn intersection(fill: bool, angle: f64) -> Path {
         .set("stroke-width", 1)
 }
 
-fn text(s: impl Into<String>, x: &str, y: &str) -> impl Node {
+fn text(
+    x: impl Into<Value>,
+    y: impl Into<Value>,
+    s: impl Into<String>,
+) -> impl Node {
     Text::new()
         .set("x", x)
         .set("y", y)
