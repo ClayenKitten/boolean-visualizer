@@ -1,4 +1,4 @@
-use std::{collections::HashSet, f64::consts::PI, iter::repeat};
+use std::{collections::HashSet, f64::consts::FRAC_PI_2, iter::repeat};
 
 use svg::{
     node::{
@@ -88,7 +88,14 @@ pub fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
     Group::new()
         .add(circle("33.33", "50", "25", fill[0]))
         .add(circle("66.66", "50", "25", fill[2]))
-        .add(intersection(fill[1], 0.5 * PI))
+        .add(
+            intersection(
+                Pos { x: 100./3., y: 50. },
+                Pos { x: 200./3., y: 50. },
+                25.,
+                fill[1],
+            )
+        )
         .add(text("33.33", "50", vars[0]))
         .add(text("66.66", "50", vars[1]))
 }
@@ -108,18 +115,31 @@ fn circle(
         .set("fill", if fill { "url(#hatch)" } else { "white" })
 }
 
-fn intersection(fill: bool, angle: f64) -> Path {
-    let start = (50., 31.366);
-    let offset = 37.268;
-    let dx = offset * f64::cos(angle);
-    let dy = offset * f64::sin(angle);
+fn intersection(
+    circle1: Pos,
+    circle2: Pos,
+    radius: f64,
+    fill: bool,
+) -> Path {
+    let distance = Pos::distance(circle1, circle2);
+    let center = Pos::center(circle1, circle2);
+    let angle = (circle1.y - circle2.y).atan2(circle1.x - circle2.x) + FRAC_PI_2;
+    // Length of rhombus's diagonal by its side and another diagonal
+    let length = f64::sqrt(4. * radius.powi(2) - distance.powi(2));
+    let start = {
+        let x = center.x - (length/2.) * angle.cos();
+        let y = center.y - (length/2.) * angle.sin();
+        Pos { x, y }
+    };
+    let dx = length * angle.cos();
+    let dy = length * angle.sin();
     Path::new()
         .set(
             "d",
             Data::new()
-                .move_to(start)
-                .elliptical_arc_by((25, 25, 0, 0, 0, dx, dy))
-                .elliptical_arc_to((25, 25, 0, 0, 0, start.0, start.1)),
+                .move_to((start.x, start.y))
+                .elliptical_arc_by((radius, radius, 0, 0, 0, dx, dy))
+                .elliptical_arc_to((radius, radius, 0, 0, 0, start.x, start.y)),
         )
         .set("fill", if fill { "url(#hatch)" } else { "white" })
         .set("stroke", "black")
@@ -139,4 +159,28 @@ fn text(
         .set("fill", "black")
         .set("font-family", "monospace")
         .add(svg::node::Text::new(s))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+struct Pos {
+    x: f64,
+    y: f64,
+}
+
+impl Pos {
+    /// Computes the distance between points.
+    pub fn distance(self, other: Self) -> f64 {
+        f64::sqrt(
+            (self.x - other.x).powi(2) +
+            (self.y - other.y).powi(2)
+        )
+    }
+
+    /// Computes a point that is in the middle between two provided.
+    pub fn center(self, other: Self) -> Self {
+        Pos {
+            x: (self.x + other.x) / 2.,
+            y: (self.y + other.y) / 2.,
+        }
+    }
 }
