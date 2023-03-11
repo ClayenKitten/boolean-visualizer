@@ -91,7 +91,7 @@ fn background(filled: bool) -> impl Node {
 fn single(var: char, filled: bool) -> impl Node {
     Group::new()
         .add(circle("50", "50", "25", filled))
-        .add(text("50", "50", var))
+        .add(text(50., 50., var))
 }
 
 fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
@@ -106,8 +106,8 @@ fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
                 fill[1],
             )
         )
-        .add(text("33.33", "50", vars[0]))
-        .add(text("66.66", "50", vars[1]))
+        .add(text(100. / 3., 50., vars[0]))
+        .add(text(200. / 3., 50., vars[1]))
 }
 
 fn triple(vars: [char; 3], fill: [bool; 7]) -> impl Node {
@@ -205,15 +205,31 @@ fn center(radius: f64, fill: bool) -> Path {
         .set("stroke-width", 1)
 }
 
-fn text(x: impl Into<Value>, y: impl Into<Value>, s: impl Into<String>) -> impl Node {
-    Text::new()
-        .set("x", x)
-        .set("y", y)
-        .set("text-anchor", "middle")
-        .set("dominant-baseline", "middle")
-        .set("fill", "black")
-        .set("font-family", "monospace")
-        .add(svg::node::Text::new(s))
+fn text(x: f64, y: f64, s: impl Into<String>) -> impl Node {
+    Group::new()
+        .add(
+            Rectangle::new()
+                .set("x", x - 5.)
+                .set("y", y - 5.)
+                .set("width", 10)
+                .set("height", 10)
+                .set("rx", 1)
+                .set("ry", 1)
+                .set("fill", "white")
+                .set("stroke", "black")
+                .set("stroke-width", 1)
+        )
+        .add(
+            Text::new()
+                .set("x", x)
+                .set("y", y)
+                .set("text-anchor", "middle")
+                .set("dominant-baseline", "middle")
+                .set("fill", "black")
+                .set("font-size", "7")
+                .set("font-family", "\"andale mono\", monospace")
+                .add(svg::node::Text::new(s))
+        )
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
