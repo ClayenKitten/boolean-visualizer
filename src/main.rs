@@ -55,35 +55,28 @@ fn formula_input(onchange: Callback<Event>) -> Html {
 }
 
 fn result_display(formula: UseStateHandle<Option<Result<Function, ParseError>>>) -> Html {
-    let table = if let Some(Ok(func)) = formula.as_ref() {
-        Some(TruthTable(
-            func.vars(),
-            |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
-        ))
-    } else {
-        None
+    let func = match formula.as_ref() {
+        Some(Ok(func)) => func,
+        Some(Err(err)) => return html!(<div>{format!("Error: {err}")}</div>),
+        None => return html!(),
     };
+    
+    let table = TruthTable(
+        func.vars(),
+        |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
+    );
 
-    let chart = if let Some(Ok(func)) = formula.as_ref() {
+    let chart = {
         let svg = svg_gen::generate(
             func.vars(),
             |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
         );
-        Some(Html::from_html_unchecked(svg.to_string().into()))
-    } else {
-        None
-    };
-
-    let error_message = if let Some(Err(err)) = formula.as_ref() {
-        Some(html!(<div>{format!("Error: {err}")}</div>))
-    } else {
-        None
+        Html::from_html_unchecked(svg.to_string().into())
     };
 
     html! {
         <div id="result">
             <div style="flex: 1">
-                {error_message}
                 {table}
             </div>
             <div>{chart}</div>
