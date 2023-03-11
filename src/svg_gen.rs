@@ -147,12 +147,7 @@ fn circle(
         .set("fill", if fill { "url(#hatch)" } else { "white" })
 }
 
-fn intersection(
-    circle1: Pos,
-    circle2: Pos,
-    radius: f64,
-    fill: bool,
-) -> Path {
+fn intersection(circle1: Pos, circle2: Pos, radius: f64, fill: bool) -> Path {
     let distance = Pos::distance(circle1, circle2);
     let center = Pos::center(circle1, circle2);
     let angle = (circle1.y - circle2.y).atan2(circle1.x - circle2.x) + FRAC_PI_2;
@@ -217,7 +212,7 @@ fn text(x: f64, y: f64, s: impl Into<String>) -> impl Node {
                 .set("ry", 1)
                 .set("fill", "white")
                 .set("stroke", "black")
-                .set("stroke-width", 1)
+                .set("stroke-width", 1),
         )
         .add(
             Text::new()
@@ -228,7 +223,7 @@ fn text(x: f64, y: f64, s: impl Into<String>) -> impl Node {
                 .set("fill", "black")
                 .set("font-size", "7")
                 .set("font-family", "\"andale mono\", monospace")
-                .add(svg::node::Text::new(s))
+                .add(svg::node::Text::new(s)),
         )
 }
 

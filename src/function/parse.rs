@@ -11,20 +11,22 @@ impl Function {
         let infix = s
             .chars()
             .filter(|ch| !ch.is_whitespace())
-            .map(|ch| Ok(match ch {
-                '&' => InfixToken::And,
-                '|' => InfixToken::Or,
-                '!' => InfixToken::Not,
-                var @ ('x' | 'y' | 'z') => {
-                    variables.insert(var);
-                    InfixToken::Variable(var)
-                },
-                '0' => InfixToken::Const(false),
-                '1' => InfixToken::Const(true),
-                '(' => InfixToken::LeftBracket,
-                ')' => InfixToken::RightBracket,
-                ch => return Err(ParseError::IllegalCharacter(ch)),
-            }))
+            .map(|ch| {
+                Ok(match ch {
+                    '&' => InfixToken::And,
+                    '|' => InfixToken::Or,
+                    '!' => InfixToken::Not,
+                    var @ ('x' | 'y' | 'z') => {
+                        variables.insert(var);
+                        InfixToken::Variable(var)
+                    }
+                    '0' => InfixToken::Const(false),
+                    '1' => InfixToken::Const(true),
+                    '(' => InfixToken::LeftBracket,
+                    ')' => InfixToken::RightBracket,
+                    ch => return Err(ParseError::IllegalCharacter(ch)),
+                })
+            })
             .scan(&mut err, |err, res| match res {
                 Ok(o) => Some(o),
                 Err(e) => {
@@ -33,12 +35,7 @@ impl Function {
                 }
             });
         let postfix = Self::into_postfix(infix);
-        Ok(
-            Function {
-                variables,
-                postfix,
-            }
-        )
+        Ok(Function { variables, postfix })
     }
 
     /// Translates infix notation into postfix notation.
@@ -47,8 +44,7 @@ impl Function {
         let mut output = Vec::<PostfixToken>::new();
         for token in infix {
             match token {
-                InfixToken::Not
-                    => op_stack.push(OpStackEntry::Not),
+                InfixToken::Not => op_stack.push(OpStackEntry::Not),
                 op @ (InfixToken::And | InfixToken::Or) => {
                     loop {
                         let top_priority = match op_stack.last() {
@@ -65,53 +61,44 @@ impl Function {
                         if top_priority < cur_priority {
                             break;
                         }
-                        output.push(
-                            match op_stack.pop().unwrap() {
+                        output.push(match op_stack.pop().unwrap() {
+                            OpStackEntry::And => PostfixToken::And,
+                            OpStackEntry::Or => PostfixToken::Or,
+                            OpStackEntry::Not => PostfixToken::Not,
+                            OpStackEntry::LeftBracket => unreachable!(),
+                        });
+                    }
+                    op_stack.push(match op {
+                        InfixToken::And => OpStackEntry::And,
+                        InfixToken::Or => OpStackEntry::Or,
+                        InfixToken::Not => OpStackEntry::Not,
+                        _ => unreachable!(),
+                    });
+                }
+                InfixToken::LeftBracket => op_stack.push(OpStackEntry::LeftBracket),
+                InfixToken::RightBracket => loop {
+                    match op_stack.last() {
+                        Some(OpStackEntry::LeftBracket) => {
+                            op_stack.pop();
+                            break;
+                        }
+                        Some(&token) => {
+                            op_stack.pop();
+                            let token = match token {
                                 OpStackEntry::And => PostfixToken::And,
                                 OpStackEntry::Or => PostfixToken::Or,
                                 OpStackEntry::Not => PostfixToken::Not,
                                 OpStackEntry::LeftBracket => unreachable!(),
-                            }
-                        );
-                    }
-                    op_stack.push(
-                        match op {
-                            InfixToken::And => OpStackEntry::And,
-                            InfixToken::Or => OpStackEntry::Or,
-                            InfixToken::Not => OpStackEntry::Not,
-                            _ => unreachable!(),
+                            };
+                            output.push(token);
                         }
-                    );
-                }
-                InfixToken::LeftBracket
-                    => op_stack.push(OpStackEntry::LeftBracket),
-                InfixToken::RightBracket => {
-                    loop {
-                        match op_stack.last() {
-                            Some(OpStackEntry::LeftBracket) => {
-                                op_stack.pop();
-                                break;
-                            },
-                            Some(&token) => {
-                                op_stack.pop();
-                                let token = match token {
-                                    OpStackEntry::And => PostfixToken::And,
-                                    OpStackEntry::Or => PostfixToken::Or,
-                                    OpStackEntry::Not => PostfixToken::Not,
-                                    OpStackEntry::LeftBracket => unreachable!(),
-                                };
-                                output.push(token);
-                            }
-                            None => {
-                                panic!("No right bracket");
-                            },
+                        None => {
+                            panic!("No right bracket");
                         }
                     }
                 },
-                InfixToken::Variable(var)
-                    => output.push(PostfixToken::Var(var)),
-                InfixToken::Const(val)
-                    => output.push(PostfixToken::Const(val)),
+                InfixToken::Variable(var) => output.push(PostfixToken::Var(var)),
+                InfixToken::Const(val) => output.push(PostfixToken::Const(val)),
             }
         }
 
@@ -166,7 +153,7 @@ enum OpStackEntry {
 mod parse_tests {
     use std::collections::HashSet;
 
-    use crate::function::{Function, parse::PostfixToken};
+    use crate::function::{parse::PostfixToken, Function};
 
     #[test]
     fn parse_one() {
@@ -217,7 +204,7 @@ mod parse_tests {
                 PostfixToken::Or,
             ],
         };
-        assert_eq!(Ok(expected), parsed);        
+        assert_eq!(Ok(expected), parsed);
     }
 
     #[test]
@@ -267,7 +254,7 @@ mod parse_tests {
                 PostfixToken::Var('z'),
                 PostfixToken::Not,
                 PostfixToken::Or,
-            ]
+            ],
         };
         assert_eq!(Ok(expected), parsed);
     }
