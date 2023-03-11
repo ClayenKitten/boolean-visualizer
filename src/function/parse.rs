@@ -32,13 +32,99 @@ impl Function {
                     None
                 }
             });
-        let postfix = into_postfix(infix);
+        let postfix = Self::into_postfix(infix);
         Ok(
             Function {
                 variables,
                 postfix,
             }
         )
+    }
+
+    /// Translates infix notation into postfix notation.
+    fn into_postfix(infix: impl Iterator<Item = InfixToken>) -> Vec<PostfixToken> {
+        let mut op_stack = Vec::<OpStackEntry>::new();
+        let mut output = Vec::<PostfixToken>::new();
+        for token in infix {
+            match token {
+                InfixToken::Not
+                    => op_stack.push(OpStackEntry::Not),
+                op @ (InfixToken::And | InfixToken::Or) => {
+                    loop {
+                        let top_priority = match op_stack.last() {
+                            Some(OpStackEntry::Not) => 2,
+                            Some(OpStackEntry::And) => 1,
+                            Some(OpStackEntry::Or) => 0,
+                            None | Some(OpStackEntry::LeftBracket) => break,
+                        };
+                        let cur_priority = match op {
+                            InfixToken::And => 1,
+                            InfixToken::Or => 0,
+                            _ => unreachable!(),
+                        };
+                        if top_priority < cur_priority {
+                            break;
+                        }
+                        output.push(
+                            match op_stack.pop().unwrap() {
+                                OpStackEntry::And => PostfixToken::And,
+                                OpStackEntry::Or => PostfixToken::Or,
+                                OpStackEntry::Not => PostfixToken::Not,
+                                OpStackEntry::LeftBracket => unreachable!(),
+                            }
+                        );
+                    }
+                    op_stack.push(
+                        match op {
+                            InfixToken::And => OpStackEntry::And,
+                            InfixToken::Or => OpStackEntry::Or,
+                            InfixToken::Not => OpStackEntry::Not,
+                            _ => unreachable!(),
+                        }
+                    );
+                }
+                InfixToken::LeftBracket
+                    => op_stack.push(OpStackEntry::LeftBracket),
+                InfixToken::RightBracket => {
+                    loop {
+                        match op_stack.last() {
+                            Some(OpStackEntry::LeftBracket) => {
+                                op_stack.pop();
+                                break;
+                            },
+                            Some(&token) => {
+                                op_stack.pop();
+                                let token = match token {
+                                    OpStackEntry::And => PostfixToken::And,
+                                    OpStackEntry::Or => PostfixToken::Or,
+                                    OpStackEntry::Not => PostfixToken::Not,
+                                    OpStackEntry::LeftBracket => unreachable!(),
+                                };
+                                output.push(token);
+                            }
+                            None => {
+                                panic!("No right bracket");
+                            },
+                        }
+                    }
+                },
+                InfixToken::Variable(var)
+                    => output.push(PostfixToken::Var(var)),
+                InfixToken::Const(val)
+                    => output.push(PostfixToken::Const(val)),
+            }
+        }
+
+        output.reserve_exact(op_stack.len());
+        while let Some(token) = op_stack.pop() {
+            output.push(match token {
+                OpStackEntry::LeftBracket => panic!("No left bracket"),
+                OpStackEntry::And => PostfixToken::And,
+                OpStackEntry::Or => PostfixToken::Or,
+                OpStackEntry::Not => PostfixToken::Not,
+            });
+        }
+        output
     }
 }
 
@@ -66,92 +152,6 @@ pub enum PostfixToken {
     Not,
     Var(char),
     Const(bool),
-}
-
-/// Translates infix notation into postfix notation.
-fn into_postfix(infix: impl Iterator<Item = InfixToken>) -> Vec<PostfixToken> {
-    let mut op_stack = Vec::<OpStackEntry>::new();
-    let mut output = Vec::<PostfixToken>::new();
-    for token in infix {
-        match token {
-            InfixToken::Not
-                => op_stack.push(OpStackEntry::Not),
-            op @ (InfixToken::And | InfixToken::Or) => {
-                loop {
-                    let top_priority = match op_stack.last() {
-                        Some(OpStackEntry::Not) => 2,
-                        Some(OpStackEntry::And) => 1,
-                        Some(OpStackEntry::Or) => 0,
-                        None | Some(OpStackEntry::LeftBracket) => break,
-                    };
-                    let cur_priority = match op {
-                        InfixToken::And => 1,
-                        InfixToken::Or => 0,
-                        _ => unreachable!(),
-                    };
-                    if top_priority < cur_priority {
-                        break;
-                    }
-                    output.push(
-                        match op_stack.pop().unwrap() {
-                            OpStackEntry::And => PostfixToken::And,
-                            OpStackEntry::Or => PostfixToken::Or,
-                            OpStackEntry::Not => PostfixToken::Not,
-                            OpStackEntry::LeftBracket => unreachable!(),
-                        }
-                    );
-                }
-                op_stack.push(
-                    match op {
-                        InfixToken::And => OpStackEntry::And,
-                        InfixToken::Or => OpStackEntry::Or,
-                        InfixToken::Not => OpStackEntry::Not,
-                        _ => unreachable!(),
-                    }
-                );
-            }
-            InfixToken::LeftBracket
-                => op_stack.push(OpStackEntry::LeftBracket),
-            InfixToken::RightBracket => {
-                loop {
-                    match op_stack.last() {
-                        Some(OpStackEntry::LeftBracket) => {
-                            op_stack.pop();
-                            break;
-                        },
-                        Some(&token) => {
-                            op_stack.pop();
-                            let token = match token {
-                                OpStackEntry::And => PostfixToken::And,
-                                OpStackEntry::Or => PostfixToken::Or,
-                                OpStackEntry::Not => PostfixToken::Not,
-                                OpStackEntry::LeftBracket => unreachable!(),
-                            };
-                            output.push(token);
-                        }
-                        None => {
-                            panic!("No right bracket");
-                        },
-                    }
-                }
-            },
-            InfixToken::Variable(var)
-                => output.push(PostfixToken::Var(var)),
-            InfixToken::Const(val)
-                => output.push(PostfixToken::Const(val)),
-        }
-    }
-
-    output.reserve_exact(op_stack.len());
-    while let Some(token) = op_stack.pop() {
-        output.push(match token {
-            OpStackEntry::LeftBracket => panic!("No left bracket"),
-            OpStackEntry::And => PostfixToken::And,
-            OpStackEntry::Or => PostfixToken::Or,
-            OpStackEntry::Not => PostfixToken::Not,
-        });
-    }
-    output
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
