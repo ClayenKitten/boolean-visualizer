@@ -4,6 +4,8 @@ use std::collections::{HashMap, HashSet};
 
 use self::parse::PostfixToken;
 
+pub use parse::ParseError;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Function {
     variables: HashSet<char>,

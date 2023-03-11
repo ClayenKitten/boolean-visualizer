@@ -1,14 +1,17 @@
 use std::collections::HashSet;
 
+use thiserror::Error;
+
 use super::Function;
 
 impl Function {
-    pub fn parse(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Result<Self, ParseError> {
+        let mut err = Ok(());
         let mut variables = HashSet::new();
         let infix = s
             .chars()
             .filter(|ch| !ch.is_whitespace())
-            .map_while(|ch| Some(match ch {
+            .map(|ch| Ok(match ch {
                 '&' => InfixToken::And,
                 '|' => InfixToken::Or,
                 '!' => InfixToken::Not,
@@ -20,16 +23,29 @@ impl Function {
                 '1' => InfixToken::Const(true),
                 '(' => InfixToken::LeftBracket,
                 ')' => InfixToken::RightBracket,
-                _ => return None,
-            }));
+                ch => return Err(ParseError::IllegalCharacter(ch)),
+            }))
+            .scan(&mut err, |err, res| match res {
+                Ok(o) => Some(o),
+                Err(e) => {
+                    **err = Err(e);
+                    None
+                }
+            });
         let postfix = into_postfix(infix);
-        Some(
+        Ok(
             Function {
                 variables,
                 postfix,
             }
         )
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+pub enum ParseError {
+    #[error("character {0} is not allowed")]
+    IllegalCharacter(char),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -146,7 +162,6 @@ enum OpStackEntry {
     Not,
 }
 
-
 #[cfg(test)]
 mod parse_tests {
     use std::collections::HashSet;
@@ -160,7 +175,7 @@ mod parse_tests {
             variables: HashSet::new(),
             postfix: vec![PostfixToken::Const(true)],
         };
-        assert_eq!(Some(expected), parsed);
+        assert_eq!(Ok(expected), parsed);
     }
 
     #[test]
@@ -170,7 +185,7 @@ mod parse_tests {
             variables: HashSet::new(),
             postfix: vec![PostfixToken::Const(true), PostfixToken::Not],
         };
-        assert_eq!(Some(expected), parsed);
+        assert_eq!(Ok(expected), parsed);
     }
 
     #[test]
@@ -186,7 +201,7 @@ mod parse_tests {
                 PostfixToken::And,
             ],
         };
-        assert_eq!(Some(expected), parsed);
+        assert_eq!(Ok(expected), parsed);
     }
 
     #[test]
@@ -202,7 +217,7 @@ mod parse_tests {
                 PostfixToken::Or,
             ],
         };
-        assert_eq!(Some(expected), parsed);        
+        assert_eq!(Ok(expected), parsed);        
     }
 
     #[test]
@@ -218,7 +233,7 @@ mod parse_tests {
                 PostfixToken::Or,
             ],
         };
-        assert_eq!(Some(expected), parsed);
+        assert_eq!(Ok(expected), parsed);
     }
 
     #[test]
@@ -234,7 +249,7 @@ mod parse_tests {
                 PostfixToken::And,
             ],
         };
-        assert_eq!(Some(expected), parsed);
+        assert_eq!(Ok(expected), parsed);
     }
 
     #[test]
@@ -254,6 +269,6 @@ mod parse_tests {
                 PostfixToken::Or,
             ]
         };
-        assert_eq!(Some(expected), parsed);
+        assert_eq!(Ok(expected), parsed);
     }
 }

@@ -7,13 +7,14 @@ use std::collections::HashMap;
 
 use crate::function::Function;
 use crate::table_gen::TruthTable;
+use function::ParseError;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 #[function_component]
 fn App() -> Html {
-    let input = use_state(|| Function::parse("0"));
+    let input = use_state(|| None);
     let setter = input.setter();
 
     let onchange = Callback::from(move |e: Event| {
@@ -22,40 +23,70 @@ fn App() -> Html {
             .expect("Event should have a target when dispatched")
             .unchecked_into();
         let string = element.value();
-        setter.set(Function::parse(&string));
+
+        if string.is_empty() || string.chars().all(|ch| ch.is_whitespace()) {
+            setter.set(None);
+        } else {
+            setter.set(Some(Function::parse(&string)));
+        }
     });
 
-    let table = input
-        .as_ref()
-        .map(|func| TruthTable(
-            func.vars(),
-            |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
-        ));
-    let chart = input
-        .as_ref()
-        .map(|func| svg_gen::generate(
+    html! {
+        <>
+            {formula_input(onchange)}
+            {result_display(input)}
+        </>
+    }
+}
+
+fn formula_input(onchange: Callback<Event>) -> Html {
+    html! {
+        <label
+            id="formula-input-label"
+            for="formula-input"
+        >
+            {"Input your formula:"}
+            <input {onchange}
+                id="formula-input"
+                type="text"
+            />
+        </label>
+    }
+}
+
+fn result_display(formula: UseStateHandle<Option<Result<Function, ParseError>>>) -> Html {
+    let table = if let Some(Ok(func)) = formula.as_ref() {
+        Some(TruthTable(
             func.vars(),
             |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
         ))
-        .map(|chart| Html::from_html_unchecked(chart.to_string().into()));
+    } else {
+        None
+    };
+
+    let chart = if let Some(Ok(func)) = formula.as_ref() {
+        let svg = svg_gen::generate(
+            func.vars(),
+            |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
+        );
+        Some(Html::from_html_unchecked(svg.to_string().into()))
+    } else {
+        None
+    };
+
+    let error_message = if let Some(Err(err)) = formula.as_ref() {
+        Some(html!(<div>{format!("Error: {err}")}</div>))
+    } else {
+        None
+    };
+
     html! {
-        <div>
-            <div id="result">
-                <div style="flex: 1">
-                    <label
-                        id="formula-input-label"
-                        for="formula-input"
-                    >
-                        {"Input your formula:"}
-                        <input {onchange}
-                            id="formula-input"
-                            type="text"
-                        />
-                    </label>
-                    {table}
-                </div>
-                <div>{chart}</div>
+        <div id="result">
+            <div style="flex: 1">
+                {error_message}
+                {table}
             </div>
+            <div>{chart}</div>
         </div>
     }
 }
