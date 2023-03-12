@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use thiserror::Error;
 
 use super::Function;
@@ -7,7 +5,7 @@ use super::Function;
 impl Function {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         let mut err = Ok(());
-        let mut variables = HashSet::new();
+        let mut variables = Vec::with_capacity(3);
         let infix = s
             .chars()
             .filter(|ch| !ch.is_whitespace())
@@ -17,7 +15,9 @@ impl Function {
                     '|' => InfixToken::Or,
                     '!' => InfixToken::Not,
                     var @ ('x' | 'y' | 'z') => {
-                        variables.insert(var);
+                        if !variables.contains(&var) {
+                            variables.push(var);
+                        }
                         InfixToken::Variable(var)
                     }
                     '0' => InfixToken::Const(false),
@@ -151,15 +151,13 @@ enum OpStackEntry {
 
 #[cfg(test)]
 mod parse_tests {
-    use std::collections::HashSet;
-
     use crate::function::{parse::PostfixToken, Function};
 
     #[test]
     fn parse_one() {
         let parsed = Function::parse("1");
         let expected = Function {
-            variables: HashSet::new(),
+            variables: Vec::new(),
             postfix: vec![PostfixToken::Const(true)],
         };
         assert_eq!(Ok(expected), parsed);
@@ -169,7 +167,7 @@ mod parse_tests {
     fn parse_not() {
         let parsed = Function::parse("!1");
         let expected = Function {
-            variables: HashSet::new(),
+            variables: Vec::new(),
             postfix: vec![PostfixToken::Const(true), PostfixToken::Not],
         };
         assert_eq!(Ok(expected), parsed);
@@ -179,7 +177,7 @@ mod parse_tests {
     fn parse_chained_and() {
         let parsed = Function::parse("x & 1 & y");
         let expected = Function {
-            variables: HashSet::from(['x', 'y']),
+            variables: vec!['x', 'y'],
             postfix: vec![
                 PostfixToken::Var('x'),
                 PostfixToken::Const(true),
@@ -195,7 +193,7 @@ mod parse_tests {
     fn parse_chained_or() {
         let parsed = Function::parse("x | y | 0");
         let expected = Function {
-            variables: HashSet::from(['x', 'y']),
+            variables: vec!['x', 'y'],
             postfix: vec![
                 PostfixToken::Var('x'),
                 PostfixToken::Var('y'),
@@ -211,7 +209,7 @@ mod parse_tests {
     fn parse_combined() {
         let parsed = Function::parse("1 & x | y");
         let expected = Function {
-            variables: HashSet::from(['x', 'y']),
+            variables: vec!['x', 'y'],
             postfix: vec![
                 PostfixToken::Const(true),
                 PostfixToken::Var('x'),
@@ -227,7 +225,7 @@ mod parse_tests {
     fn parse_parenthesis() {
         let parsed = Function::parse("1 & (x | y)");
         let expected = Function {
-            variables: HashSet::from(['x', 'y']),
+            variables: vec!['x', 'y'],
             postfix: vec![
                 PostfixToken::Const(true),
                 PostfixToken::Var('x'),
@@ -243,7 +241,7 @@ mod parse_tests {
     fn parse_complex() {
         let parsed = Function::parse("!x & (y | z) | !z");
         let expected = Function {
-            variables: HashSet::from(['x', 'y', 'z']),
+            variables: vec!['x', 'y', 'z'],
             postfix: vec![
                 PostfixToken::Var('x'),
                 PostfixToken::Not,

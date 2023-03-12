@@ -1,4 +1,4 @@
-use std::{collections::HashSet, f64::consts::FRAC_PI_2, iter::repeat};
+use std::{f64::consts::FRAC_PI_2, iter::repeat};
 
 use svg::{
     node::{
@@ -8,50 +8,48 @@ use svg::{
     Document, Node,
 };
 
-pub fn generate<F>(vars: &HashSet<char>, func: F) -> svg::Document
+pub fn generate<F>(vars: &[char], func: F) -> svg::Document
 where
-    F: Fn(Vec<(char, bool)>) -> bool,
+    F: Fn(&[bool]) -> bool,
 {
     let mut document = Document::new()
         .set("viewBox", (0, 0, 100, 100))
         .add(fill_pattern());
-    let all_false = vars
-        .iter()
-        .copied()
-        .zip(repeat(false))
-        .collect::<Vec<(char, bool)>>();
-    document = document.add(background(func(all_false)));
+    let all_false = repeat(false)
+        .take(vars.len())
+        .collect::<Vec<bool>>();
+    document = document.add(background(func(&all_false)));
     match vars.len() {
         0 => document,
         1 => {
             let char = *vars.iter().next().unwrap();
-            document.add(single(char, func(vec![(char, true)])))
+            document.add(single(char, func(&[true])))
         }
         2 => {
-            let mut vars: [char; 2] = vars.iter().copied().collect::<Vec<_>>().try_into().unwrap();
+            let mut vars: [char; 2] = vars.to_vec().try_into().unwrap();
             vars.sort_unstable();
             document.add(double(
                 vars,
                 [
-                    func(vec![(vars[0], true), (vars[1], false)]),
-                    func(vec![(vars[0], true), (vars[1], true)]),
-                    func(vec![(vars[0], false), (vars[1], true)]),
+                    func(&[true, false]),
+                    func(&[true, true]),
+                    func(&[false, true]),
                 ],
             ))
         }
         3 => {
-            let mut vars: [char; 3] = vars.iter().copied().collect::<Vec<_>>().try_into().unwrap();
+            let mut vars: [char; 3] = vars.to_vec().try_into().unwrap();
             vars.sort_unstable();
             document.add(triple(
                 vars,
                 [
-                    func(vec![(vars[0], true), (vars[1], false), (vars[2], false)]),
-                    func(vec![(vars[0], false), (vars[1], true), (vars[2], false)]),
-                    func(vec![(vars[0], false), (vars[1], false), (vars[2], true)]),
-                    func(vec![(vars[0], true), (vars[1], true), (vars[2], false)]),
-                    func(vec![(vars[0], true), (vars[1], false), (vars[2], true)]),
-                    func(vec![(vars[0], false), (vars[1], true), (vars[2], true)]),
-                    func(vec![(vars[0], true), (vars[1], true), (vars[2], true)]),
+                    func(&[true, false, false]),
+                    func(&[false, true, false]),
+                    func(&[false, false, true]),
+                    func(&[true, true, false]),
+                    func(&[true, false, true]),
+                    func(&[false, true, true]),
+                    func(&[true, true, true]),
                 ],
             ))
         }

@@ -3,8 +3,6 @@ mod function;
 mod svg_gen;
 mod table_gen;
 
-use std::collections::HashMap;
-
 use crate::function::Function;
 use crate::table_gen::TruthTable;
 use function::ParseError;
@@ -63,13 +61,13 @@ fn result_display(formula: UseStateHandle<Option<Result<Function, ParseError>>>)
     
     let table = TruthTable(
         func.vars(),
-        |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
+        |vals| func.eval(vals).unwrap()
     );
 
     let chart = {
         let svg = svg_gen::generate(
             func.vars(),
-            |vals| func.eval(HashMap::from_iter(vals.into_iter())).unwrap()
+            |vals| func.eval(vals).unwrap()
         );
         Html::from_html_unchecked(svg.to_string().into())
     };
