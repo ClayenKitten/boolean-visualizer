@@ -20,8 +20,7 @@ where
             document.add(single(char, func(&[true])))
         }
         2 => {
-            let mut vars: [char; 2] = vars.to_vec().try_into().unwrap();
-            vars.sort_unstable();
+            let vars: [char; 2] = vars.to_vec().try_into().unwrap();
             document.add(double(
                 vars,
                 [
@@ -32,8 +31,7 @@ where
             ))
         }
         3 => {
-            let mut vars: [char; 3] = vars.to_vec().try_into().unwrap();
-            vars.sort_unstable();
+            let vars: [char; 3] = vars.to_vec().try_into().unwrap();
             document.add(triple(
                 vars,
                 [

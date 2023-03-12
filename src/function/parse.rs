@@ -53,6 +53,8 @@ impl Function {
             return Err(UnexpectedEOF.at(s.len()));
         }
         let postfix = Self::into_postfix(infix.into_iter());
+
+        variables.sort_unstable();
         Ok(Function { variables, postfix })
     }
 
