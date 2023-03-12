@@ -1,40 +1,58 @@
+use std::fmt::Display;
+
 use thiserror::Error;
 
 use super::Function;
 
 impl Function {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
-        let mut err = Ok(());
+        use ParseErrorKind::*;
+
         let mut variables = Vec::with_capacity(3);
-        let infix = s
-            .chars()
-            .filter(|ch| !ch.is_whitespace())
-            .map(|ch| {
-                Ok(match ch {
-                    '&' => InfixToken::And,
-                    '|' => InfixToken::Or,
-                    '!' => InfixToken::Not,
-                    var @ ('x' | 'y' | 'z') => {
-                        if !variables.contains(&var) {
-                            variables.push(var);
-                        }
-                        InfixToken::Variable(var)
+        let mut infix = Vec::with_capacity(s.len());
+
+        let mut bracket_number = 0isize;
+        let mut previous = TokenSeqType::Operator;
+        for (pos, ch) in s.char_indices() {
+            if ch.is_whitespace() {
+                continue;
+            }
+            let token = match ch {
+                '&' => InfixToken::And,
+                '|' => InfixToken::Or,
+                '!' => InfixToken::Not,
+                var @ ('x' | 'y' | 'z') => {
+                    if !variables.contains(&var) {
+                        variables.push(var);
                     }
-                    '0' => InfixToken::Const(false),
-                    '1' => InfixToken::Const(true),
-                    '(' => InfixToken::LeftBracket,
-                    ')' => InfixToken::RightBracket,
-                    ch => return Err(ParseError::IllegalCharacter(ch)),
-                })
-            })
-            .scan(&mut err, |err, res| match res {
-                Ok(o) => Some(o),
-                Err(e) => {
-                    **err = Err(e);
-                    None
+                    InfixToken::Variable(var)
                 }
-            });
-        let postfix = Self::into_postfix(infix);
+                '0' => InfixToken::Const(false),
+                '1' => InfixToken::Const(true),
+                '(' => {
+                    bracket_number += 1;
+                    InfixToken::LeftBracket
+                }
+                ')' => {
+                    bracket_number -= 1;
+                    if bracket_number < 0 {
+                        return Err(UnmatchedParenthesis.at(pos));
+                    }
+                    InfixToken::RightBracket
+                }
+                ch => return Err(IllegalCharacter(ch).at(pos)),
+            };
+            previous.matches(token).map_err(|e| e.at(pos))?;
+            previous = token.into();
+            infix.push(token);
+        }
+        if bracket_number > 0 {
+            return Err(UnclosedParenthesis.at(s.len()));
+        }
+        if previous == TokenSeqType::Operator {
+            return Err(UnexpectedEOF.at(s.len()));
+        }
+        let postfix = Self::into_postfix(infix.into_iter());
         Ok(Function { variables, postfix })
     }
 
@@ -116,9 +134,78 @@ impl Function {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
-pub enum ParseError {
-    #[error("character {0} is not allowed")]
+pub struct ParseError {
+    pos: usize,
+    kind: ParseErrorKind,
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.kind)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+pub enum ParseErrorKind {
+    #[error("character `{0}` is not allowed")]
     IllegalCharacter(char),
+    #[error("more brackets closed than opened")]
+    UnmatchedParenthesis,
+    #[error("more brackets opened than closed")]
+    UnclosedParenthesis,
+    #[error("expected one of: '&', '|', or ')'; got '{0}'")]
+    ExpectedOperator(char),
+    #[error("expected one of: variable, constant, '!', or '('; got '{0}'")]
+    ExpectedOperand(char),
+    #[error("expected one of: variable, constant, '!', or '('; got EOF")]
+    UnexpectedEOF,
+}
+
+impl ParseErrorKind {
+    pub fn at(self, pos: usize) -> ParseError {
+        ParseError { pos, kind: self }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TokenSeqType {
+    /// A token that should be followed by '&', '|', or ')'.
+    Operand,
+    /// A token that should be followed by operand, '!', or '('.
+    Operator,
+}
+
+impl TokenSeqType {
+    pub fn matches(&self, next: InfixToken) -> Result<(), ParseErrorKind> {
+        use {InfixToken::*, TokenSeqType::*};
+
+        match self {
+            Operand => match next {
+                And | Or | RightBracket => Ok(()),
+                _ => Err(ParseErrorKind::ExpectedOperator(next.into())),
+            },
+            Operator => match next {
+                Variable(_) | Const(_) | Not | LeftBracket => Ok(()),
+                _ => Err(ParseErrorKind::ExpectedOperand(next.into())),
+            },
+        }
+    }
+}
+
+impl From<InfixToken> for TokenSeqType {
+    fn from(value: InfixToken) -> Self {
+        use {InfixToken::*, TokenSeqType::*};
+
+        match value {
+            And => Operator,
+            Or => Operator,
+            Not => Operator,
+            Variable(_) => Operand,
+            Const(_) => Operand,
+            LeftBracket => Operator,
+            RightBracket => Operand,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -130,6 +217,21 @@ enum InfixToken {
     Const(bool),
     LeftBracket,
     RightBracket,
+}
+
+impl Into<char> for InfixToken {
+    fn into(self) -> char {
+        match self {
+            InfixToken::And => '&',
+            InfixToken::Or => '|',
+            InfixToken::Not => '!',
+            InfixToken::Variable(ch) => ch,
+            InfixToken::Const(true) => '1',
+            InfixToken::Const(false) => '0',
+            InfixToken::LeftBracket => '(',
+            InfixToken::RightBracket => ')',
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
