@@ -6,34 +6,40 @@ article {
 
 #formula-input {
     display: block;
-    z-index: 1;
 
-    position: relative;
-    margin: 0;
-
-    color: transparent;
-    background: transparent;
-    caret-color: var(--contrast);
-
-    $height: calc(
+    $input-height: calc(
         (1rem * var(--line-height)) +
         (var(--form-element-spacing-vertical) * 2) +
         (var(--border-width) * 2)
     );
 
-    + pre {
+    height: $input-height;
+
+    input {
+        position: relative;
+        z-index: 1;
+
+        margin: 0;
+        width: 100%;
+
+        color: transparent;
+        background: transparent;
+        caret-color: var(--contrast);
+    }
+
+    > pre {
         position: relative;
         z-index: 0;
 
-        top: calc(-1 * #{$height});
+        top: calc(-1 * #{$input-height});
         right: auto;
-        margin-bottom: calc(-1 * #{$height});
+        margin-bottom: calc(-1 * #{$input-height});
 
         font: inherit;
         line-height: var(--line-height);
 
         margin: 0;
-        height: $height;
+        height: $input-height;
         padding: var(--form-element-spacing-vertical) var(--form-element-spacing-horizontal);
 
         > code {
@@ -85,7 +91,7 @@ article {
 
     > svg {
         display: block;
-        flex: 1 1 600px;
+        flex: 1 1 500px;
     }
 }
 

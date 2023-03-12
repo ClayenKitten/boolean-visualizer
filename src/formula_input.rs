@@ -17,8 +17,6 @@ pub enum Msg {
     OnChange(Event),
 }
 
-const ID: &str = "formula-input";
-
 impl Component for FormulaInput {
     type Message = Msg;
 
@@ -47,19 +45,21 @@ impl Component for FormulaInput {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <label for={ID}>
-                {"Input your formula:"}
-                <input
-                    ref = {self.input.clone()}
-                    id={ID}
-                    type="text"
-                    oninput={ctx.link().callback(|_| Msg::OnInput)}
-                    onchange={ctx.link().callback(Msg::OnChange)}
-                />
-                <pre aria-hidden="true">
-                    {highlighting(self.value.as_str())}
-                </pre>
-            </label>
+            <>
+                <label for="formula-input-inner">{"Input your formula:"}</label>
+                <div id="formula-input">
+                    <input
+                        ref = {self.input.clone()}
+                        type="text"
+                        id="formula-input-inner"
+                        oninput={ctx.link().callback(|_| Msg::OnInput)}
+                        onchange={ctx.link().callback(Msg::OnChange)}
+                    />
+                    <pre aria-hidden="true">
+                        {highlighting(self.value.as_str())}
+                    </pre>
+                </div>
+            </>
         }
     }
 
