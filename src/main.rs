@@ -1,11 +1,11 @@
 mod bool_iterator;
+mod formula_input;
 mod function;
 mod svg_gen;
 mod table_gen;
-mod formula_input;
 
-use crate::function::Function;
 use crate::formula_input::FormulaInput;
+use crate::function::Function;
 use crate::table_gen::TruthTable;
 use function::ParseError;
 use wasm_bindgen::JsCast;
