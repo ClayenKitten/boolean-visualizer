@@ -43,7 +43,7 @@ article {
             color: var(--contrast);
 
             .variable {
-                color: whitesmoke;
+                color: var(--contrast)                
             }
 
             .operator {
