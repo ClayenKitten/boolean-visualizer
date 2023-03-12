@@ -31,8 +31,10 @@ fn App() -> Html {
 
     html! {
         <>
-            {formula_input(onchange)}
-            {result_display(input)}
+            <main>
+                {formula_input(onchange)}
+                {result_display(input)}
+            </main>
         </>
     }
 }
@@ -55,7 +57,7 @@ fn formula_input(onchange: Callback<Event>) -> Html {
 fn result_display(formula: UseStateHandle<Option<Result<Function, ParseError>>>) -> Html {
     let func = match formula.as_ref() {
         Some(Ok(func)) => func,
-        Some(Err(err)) => return html!(<div>{format!("Error: {err}")}</div>),
+        Some(Err(err)) => return error(err),
         None => return html!(),
     };
     
@@ -73,12 +75,18 @@ fn result_display(formula: UseStateHandle<Option<Result<Function, ParseError>>>)
     };
 
     html! {
-        <div id="result">
-            <div style="flex: 1">
-                {table}
-            </div>
-            <div>{chart}</div>
-        </div>
+        <article id="result">
+            {table}
+            {chart}
+        </article>
+    }
+}
+
+fn error(msg: impl ToString) -> Html {
+    html! {
+        <article class="danger">
+            {format!("Error: {}.", msg.to_string())}
+        </article>
     }
 }
 
