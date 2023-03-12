@@ -62,34 +62,30 @@ article {
     }
 }
 
-#truth-table, #truth-table th, #truth-table td {
-    border: 1px solid;
-    border-collapse: collapse;
-}
-
-#truth-table {
-    th {
-        font-weight: bold;
-    }
-    th, td {
-        text-align: center;
-        padding: 10px;
-    }
-}
-
 #result {
     display: flex;
     align-items: flex-start;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 10px;
 
     > table {
-        flex: 1;
+        flex: 2 1 auto;
+        width: 300px;
+        border: 2px solid;
+        th {
+            font-weight: bold;
+        }
+        th, td {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid;
+        }
     }
 
     > svg {
         display: block;
-        flex: 1;
+        flex: 1 1 600px;
     }
 }
 
