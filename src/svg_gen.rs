@@ -102,6 +102,7 @@ fn double(vars: [char; 2], fill: [bool; 3]) -> impl Node {
 
 fn triple(vars: [char; 3], fill: [bool; 7]) -> impl Node {
     let dy = RADIUS * f64::sqrt(3.) / 6.;
+    let side_text_offset = f64::sqrt((RADIUS / 2.).powi(2) / 2.);
 
     let c1 = Pos { x: 0., y: -2. * dy };
     let c2 = Pos { x: -RADIUS / 2., y: dy };
@@ -116,9 +117,9 @@ fn triple(vars: [char; 3], fill: [bool; 7]) -> impl Node {
         .add(intersection2(c1, c3, fill[4]))
         .add(intersection2(c2, c3, fill[5]))
         .add(intersection3(fill[6]))
-        .add(text(c1.x, c1.y - 12., vars[0]))
-        .add(text(c2.x - 9., c2.y + 9., vars[1]))
-        .add(text(c3.x + 9., c3.y + 9., vars[2]))
+        .add(text(c1.x, c1.y - RADIUS / 2., vars[0]))
+        .add(text(c2.x - side_text_offset, c2.y + side_text_offset, vars[1]))
+        .add(text(c3.x + side_text_offset, c3.y + side_text_offset, vars[2]))
 }
 
 fn circle(center: Pos, fill: bool) -> Circle {
@@ -188,15 +189,15 @@ fn text(x: f64, y: f64, s: impl Into<String>) -> impl Node {
     Group::new()
         .add(
             Rectangle::new()
-                .set("x", x - 5.)
-                .set("y", y - 5.)
-                .set("width", 10)
-                .set("height", 10)
+                .set("x", x - 4.)
+                .set("y", y - 4.)
                 .set("rx", 1)
                 .set("ry", 1)
+                .set("width", 8)
+                .set("height", 8)
                 .set("fill", "white")
                 .set("stroke", "black")
-                .set("stroke-width", 1),
+                .set("stroke-width", 0.25),
         )
         .add(
             Text::new()
