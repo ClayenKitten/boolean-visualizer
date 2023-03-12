@@ -611,7 +611,7 @@ function initSync(module) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('boolean-visualizer-892183ee62156f18_bg.wasm', import.meta.url);
+        input = new URL('boolean-visualizer-9539684a2ac3bcc5_bg.wasm', import.meta.url);
     }
     const imports = getImports();
 
