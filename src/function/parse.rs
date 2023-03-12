@@ -21,7 +21,7 @@ impl Function {
                 '&' => InfixToken::And,
                 '|' => InfixToken::Or,
                 '!' => InfixToken::Not,
-                var @ ('x' | 'y' | 'z') => {
+                var @ ('a'..='z') => {
                     if !variables.contains(&var) {
                         variables.push(var);
                     }
