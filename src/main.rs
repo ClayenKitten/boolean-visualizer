@@ -2,8 +2,10 @@ mod bool_iterator;
 mod function;
 mod svg_gen;
 mod table_gen;
+mod formula_input;
 
 use crate::function::Function;
+use crate::formula_input::FormulaInput;
 use crate::table_gen::TruthTable;
 use function::ParseError;
 use wasm_bindgen::JsCast;
@@ -32,25 +34,10 @@ fn App() -> Html {
     html! {
         <>
             <main>
-                {formula_input(onchange)}
+                <FormulaInput {onchange} />
                 {result_display(input)}
             </main>
         </>
-    }
-}
-
-fn formula_input(onchange: Callback<Event>) -> Html {
-    html! {
-        <label
-            id="formula-input-label"
-            for="formula-input"
-        >
-            {"Input your formula:"}
-            <input {onchange}
-                id="formula-input"
-                type="text"
-            />
-        </label>
     }
 }
 
