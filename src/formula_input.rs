@@ -78,6 +78,7 @@ fn highlighting(input: &str) -> Html {
             depth: i32,
             is_left: bool,
         },
+        Whitespace(char),
         Unknown(char),
     }
 
@@ -98,6 +99,8 @@ fn highlighting(input: &str) -> Html {
                 depth -= 1;
                 Entry::Bracket { depth, is_left: false }
             },
+            _ if ch.is_whitespace()
+                => Entry::Whitespace(ch),
             _ => Entry::Unknown(ch),
         })
     }
@@ -122,6 +125,8 @@ fn highlighting(input: &str) -> Html {
                     </span>
                 }
             }
+            Entry::Whitespace(ch)
+                => html!(ch),
             Entry::Unknown(ch)
                 => html!(<span class="error">{ch}</span>),
         })
