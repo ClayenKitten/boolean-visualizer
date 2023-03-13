@@ -52,6 +52,7 @@ impl Component for FormulaInput {
                         ref = {self.input.clone()}
                         type="text"
                         id="formula-input-inner"
+                        enterkeyhint="done"
                         oninput={ctx.link().callback(|_| Msg::OnInput)}
                         onchange={ctx.link().callback(Msg::OnChange)}
                     />
