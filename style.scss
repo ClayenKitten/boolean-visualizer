@@ -1,7 +1,12 @@
 @import url("https://unpkg.com/@picocss/pico@1.*/css/pico.classless.min.css");
 
+body > main {
+    padding-top: calc(var(--spacing) * 2);
+    padding-bottom: var(--spacing);
+}
+
 article {
-    --block-spacing-vertical: calc(var(--spacing) * 2);
+    --block-spacing-vertical: calc(var(--spacing) * 1.5);
 }
 
 #formula-input {
@@ -103,7 +108,7 @@ article {
         }
         th, td {
             text-align: center;
-            padding: 10px;
+            padding: 5px;
             border: 1px solid;
         }
     }
