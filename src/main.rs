@@ -53,12 +53,14 @@ fn result_display(formula: UseStateHandle<Option<Result<Function, ParseError>>>)
         |vals| func.eval(vals).unwrap()
     );
 
-    let chart = {
+    let chart = if func.vars().len() <= 3 {
         let svg = svg_gen::generate(
             func.vars(),
             |vals| func.eval(vals).unwrap()
         );
-        Html::from_html_unchecked(svg.to_string().into())
+        Some(Html::from_html_unchecked(svg.to_string().into()))
+    } else {
+        None
     };
 
     html! {
