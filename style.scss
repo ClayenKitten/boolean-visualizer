@@ -91,12 +91,13 @@ article {
     align-items: flex-start;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--block-spacing-vertical) var(--block-spacing-horizontal);
 
     > table {
         flex: 2 1 auto;
         width: 300px;
         border: 2px solid;
+        margin: 0;
         th {
             font-weight: bold;
         }
