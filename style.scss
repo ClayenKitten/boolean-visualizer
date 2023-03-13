@@ -49,7 +49,10 @@ article {
             color: var(--contrast);
 
             .variable {
-                color: var(--contrast)                
+                color: darkslategrey;
+                @media only screen and (prefers-color-scheme: dark) {
+                    color: skyblue;
+                }
             }
 
             .operator {
@@ -57,7 +60,22 @@ article {
             }
 
             .bracket {
-                color: coral;
+                color: lightseagreen;
+                &[data-depth="1"] {
+                    color: orange;
+                }
+                &[data-depth="2"] {
+                    color: maroon;
+                }
+                @media only screen and (prefers-color-scheme: dark) {
+                    color: wheat;
+                    &[data-depth="1"] {
+                        color: coral;
+                    }
+                    &[data-depth="2"] {
+                        color: brown;
+                    }
+                }
             }
 
             .error {
