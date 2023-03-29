@@ -34,9 +34,12 @@ fn App() -> Html {
     html! {
         <>
             <main>
-                <FormulaInput {onchange} />
+                <article>
+                    <FormulaInput {onchange} />
+                </article>
                 {result_display(input)}
             </main>
+            <footer>{"Made by\u{00A0}"}<a href="https://github.com/ClayenKitten">{"ClayenKitten"}</a></footer>
         </>
     }
 }
