@@ -4,7 +4,7 @@ mod function;
 mod svg_gen;
 mod table_gen;
 
-use crate::input::text_input::TextInput;
+use crate::input::{text_input::TextInput, selector::InputKindSelector};
 use crate::function::Function;
 use crate::table_gen::TruthTable;
 use function::ParseError;
@@ -36,14 +36,7 @@ fn App() -> Html {
             <main>
                 <article>
                     <TextInput {onchange} />
-                    <menu id="input-kind-selector">
-                        <button class="selected">
-                            <img class="icon" src="static/icons/text.svg"/>
-                        </button>
-                        <button>
-                            <img class="icon" src="static/icons/graph.svg"/>
-                        </button>
-                    </menu>
+                    <InputKindSelector onselect={|_| () /* When selected input kind changes */}/>
                 </article>
                 {result_display(input)}
             </main>
