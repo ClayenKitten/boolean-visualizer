@@ -1,10 +1,10 @@
 mod bool_iterator;
-mod formula_input;
+mod input;
 mod function;
 mod svg_gen;
 mod table_gen;
 
-use crate::formula_input::FormulaInput;
+use crate::input::text_input::TextInput;
 use crate::function::Function;
 use crate::table_gen::TruthTable;
 use function::ParseError;
@@ -35,7 +35,7 @@ fn App() -> Html {
         <>
             <main>
                 <article>
-                    <FormulaInput {onchange} />
+                    <TextInput {onchange} />
                     <menu id="input-kind-selector">
                         <button class="selected">
                             <img class="icon" src="static/icons/text.svg"/>

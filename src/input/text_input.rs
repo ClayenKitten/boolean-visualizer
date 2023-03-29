@@ -1,7 +1,8 @@
 use web_sys::{Event, HtmlElement, HtmlInputElement};
 use yew::{html, Callback, Component, Context, Html, NodeRef, Properties};
 
-pub struct FormulaInput {
+/// An input of arbitrary text expression.
+pub struct TextInput {
     input: NodeRef,
     value: String,
 }
@@ -17,7 +18,7 @@ pub enum Msg {
     OnChange(Event),
 }
 
-impl Component for FormulaInput {
+impl Component for TextInput {
     type Message = Msg;
 
     type Properties = Props;
