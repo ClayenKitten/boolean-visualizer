@@ -118,6 +118,33 @@ article {
     }
 }
 
+#input-kind-selector {
+    margin: 0;
+    margin-top: 1.5rem;
+    padding: 0;
+    
+    display: flex;
+    gap: 25px;
+    
+    > button {
+        flex: 1 1 60px;
+        max-width: 3rem;
+        aspect-ratio: 1;
+
+        margin: 0;
+        padding: 10px;
+
+        &:not(.selected) {
+            border-color: var(--secondary);
+            background-color: var(--secondary);
+        }
+
+        > .icon {
+            filter: invert(90%);
+        }
+    }
+}
+
 #result {
     display: flex;
     align-items: flex-start;

@@ -36,6 +36,14 @@ fn App() -> Html {
             <main>
                 <article>
                     <FormulaInput {onchange} />
+                    <menu id="input-kind-selector">
+                        <button class="selected">
+                            <img class="icon" src="static/icons/text.svg"/>
+                        </button>
+                        <button>
+                            <img class="icon" src="static/icons/graph.svg"/>
+                        </button>
+                    </menu>
                 </article>
                 {result_display(input)}
             </main>
